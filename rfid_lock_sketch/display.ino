@@ -31,7 +31,7 @@ void displayStatus(Status status){
   
   display.println(status.message);
   display.println(status.cardId);
-  if(status.state == Unlocked){
+  if(isLockEngaged()){
     display.println("Unlocked ");
   } else {
     display.println("Locked ");
