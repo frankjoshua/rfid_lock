@@ -7,6 +7,7 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include "icons.h"
 
 #define OLED_RESET LED_BUILTIN
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
@@ -32,9 +33,25 @@ void displayStatus(Status status){
   display.println(status.message);
   display.println(status.cardId);
   if(isLockEngaged()){
-    display.println("Unlocked ");
+    if(isUnlocked()){
+      display.println("Unlocked");
+      display.drawBitmap(
+      (display.width()  - UNLOCK_BMP_W),
+      (display.height() - UNLOCK_BMP_H),
+      UNLOCK_BMP, UNLOCK_BMP_W, UNLOCK_BMP_H, 1);    
+    } else {
+      display.println("Key Unlock");
+       display.drawBitmap(
+        (display.width()  - KEY_BMP_W),
+        (display.height() - KEY_BMP_H),
+        KEY_BMP, KEY_BMP_W, KEY_BMP_H, 1);  
+    }     
   } else {
-    display.println("Locked ");
+    display.println("Locked");
+    display.drawBitmap(
+      (display.width()  - LOCK_BMP_W),
+      (display.height() - LOCK_BMP_H),
+      LOCK_BMP, LOCK_BMP_W, LOCK_BMP_H, 1); 
   }
   if(status.timeTillLock > 0){
     display.println(status.timeTillLock / 1000);
