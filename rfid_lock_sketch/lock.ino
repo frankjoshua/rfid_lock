@@ -1,7 +1,7 @@
 #define LOCK_PIN D8
 #define LOCK_INPUT 10
 
-#define LOCK_STATE LOW
+#define LOCK_ENGAGE_STATE LOW
 
 void initLock(){
   pinMode(LOCK_PIN, OUTPUT);
@@ -10,13 +10,13 @@ void initLock(){
 }
 
 void unlock(){
-  digitalWrite(LOCK_PIN, LOCK_STATE);
+  digitalWrite(LOCK_PIN, LOCK_ENGAGE_STATE);
 }
 
 void lock(){
-  digitalWrite(LOCK_PIN, !LOCK_STATE);
+  digitalWrite(LOCK_PIN, !LOCK_ENGAGE_STATE);
 }
 
 boolean isLockEngaged(){
-  return digitalRead(LOCK_INPUT) == LOCK_STATE;
+  return digitalRead(LOCK_INPUT) == LOCK_ENGAGE_STATE;
 }
