@@ -1,7 +1,7 @@
 #define LOCK_PIN D8
 #define LOCK_INPUT 10
 
-#define LOCK_ENGAGE_STATE LOW
+#define LOCK_ENGAGE_STATE HIGH
 
 void initLock(){
   pinMode(LOCK_PIN, OUTPUT);
