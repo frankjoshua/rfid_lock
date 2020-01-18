@@ -58,7 +58,7 @@ void displayStatus(Status status){
   }
   display.display();
 
-  Serial.println(status.state);
+  Serial.println(status.message);
 }
 
 void testdrawstyles(void) {

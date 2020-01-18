@@ -1,5 +1,6 @@
 
 Status status;
+String authCardId = "xxxx";
 
 void setMessage(String message){
   status.message = message;
@@ -13,7 +14,6 @@ bool isUnlocked(){
 void setLocked(){
   status.state = Locked;
   status.timeTillLock = 0;
-  status.cardId = "";
 }
 
 long lastLoop = 0;
@@ -55,11 +55,15 @@ void updateCardId(){
   status.cardId = getCardId();
 }
 
+String currentCardId(){
+  return status.cardId;
+}
+ 
 void setUnlocked(){
   status.state = Unlocked;
   status.timeTillLock = 10500;
 }
 
 bool isCardAuthorized(){
-  return status.cardId == "19BBFA97";
+  return status.cardId == authCardId;
 }
