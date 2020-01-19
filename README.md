@@ -2,3 +2,4 @@ The ESP8266 needs two api keys to talk to CivicCRM. To update API key for CivicC
 ```
 http://<IP_OF_ESP8266>/config?api_key=<SERVER_KEY>&user_key=<USER_KEY>
 ```
+![](parts.jpg)
