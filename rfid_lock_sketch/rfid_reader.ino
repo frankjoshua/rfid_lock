@@ -58,6 +58,8 @@ String getCardId(){
     if (status != MFRC522::STATUS_OK) {
       Serial.print(F("Authentication failed: "));
       Serial.println(mfrc522.GetStatusCodeName(status));
+      mfrc522.PICC_HaltA();
+      mfrc522.PCD_StopCrypto1();
       return "AUTH_FAIL";
     }
 
@@ -70,6 +72,8 @@ String getCardId(){
     if (status != MFRC522::STATUS_OK) {
       Serial.print(F("Reading failed: "));
       Serial.println(mfrc522.GetStatusCodeName(status));
+      mfrc522.PICC_HaltA();
+      mfrc522.PCD_StopCrypto1();
       return "READ_FAIL";
     }
 
