@@ -52,7 +52,7 @@ void updateLockAndDisplay(){
 }
 
 void updateCardId(){
-  status.cardId = getCardId();
+  setCardId(status.cardId);
 }
 
 String currentCardId(){

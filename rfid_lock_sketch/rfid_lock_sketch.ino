@@ -1,7 +1,7 @@
 /**
  * Requirements:
  * https://github.com/tzapu/WiFiManager
- * https://github.com/miguelbalboa/rfid
+ * https://github.com/monkeyboard/Wiegand-Protocol-Library-for-Arduino
  * https://github.com/adafruit/Adafruit_SSD1306
  * https://github.com/adafruit/Adafruit-GFX-Library
  * https://github.com/bblanchon/ArduinoJson
@@ -9,7 +9,7 @@
 #include "status.h"
 #include <ESP8266WiFi.h>
 
-const String AP_NAME = "RFIDLOCK_1";
+//const char* AP_NAME = "RFIDLOCK_1";
 
 void setup() {
   Serial.begin(9600);
@@ -20,9 +20,9 @@ void setup() {
   delay(1000);
   initRFIDReader();
   initLock();
-  String msg = "No Wifi!\nAP SSID:\n" + AP_NAME;
+  String msg = String("No Wifi!\nAP SSID:\n");
   setMessage(msg);
-  initWifi(AP_NAME);
+  initWifi();
 //  setMessage("Updating Card Database");
 //  updateRepository();
   initFiles();
@@ -42,18 +42,18 @@ void loop() {
   }
   
   if(isCardPresent()){
-    updateCardId();
-    if(isCardAuthorized()){
-      setMessage("Authorized");
-      setUnlocked();
-    } else {
-      setLocked();
-      updateRepository(getApiKey(), getUserKey(), currentCardId());
-      if(isCardAuthorized()){
-        setMessage("Authorized");
-        setUnlocked();
-      }
-    }
+//    updateCardId();
+//    if(isCardAuthorized()){
+//      setMessage("Authorized");
+//      setUnlocked();
+//    } else {
+//      setLocked();
+//      updateRepository(getApiKey(), getUserKey(), currentCardId());
+//      if(isCardAuthorized()){
+//        setMessage("Authorized");
+//        setUnlocked();
+//      }
+//    }
   }
 
   if(shouldUpdateState()){
