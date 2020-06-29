@@ -7,32 +7,27 @@
 WIEGAND wg;
 
 void initRFIDReader(){
-  wg.begin(10, 9);
+  wg.begin(12, 14);
 }
 
 bool isCardPresent() {
-//  if(wg.available()){
-//    return true;
-//  } else {
-//    return false;
-//  }
-  return false;
+  return wg.available();
 }
 
 void setCardId(String &cardId){
-//  int cardType = wg.getWiegandType();
-//  switch(cardType){
-//    case 4:
-//    case 8:
-//    case 26:
-//    case 32:
-//      cardId = String(wg.getCode(), HEX);
-//      break;
-//    default: 
-//      cardId = String(cardType);
-//      break;
-//  }
-  cardId = "HI";
+  int cardType = wg.getWiegandType();
+  switch(cardType){
+    case 4:
+    case 8:
+    case 26:
+    case 32:
+      cardId = String(wg.getCode(), HEX);
+      break;
+    default: 
+      cardId = String(cardType);
+      break;
+  }
+  
 }
 
 void arrayToString(byte array[], unsigned int len, char buffer[]){
