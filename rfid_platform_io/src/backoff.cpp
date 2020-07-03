@@ -2,7 +2,7 @@
 #include <Arduino.h>
 
 unsigned long delayUntil = 0;
-const int defaultDelay = 500;
+const int defaultDelay = 250;
 int lastDelay = defaultDelay;
 
 BackoffTimer::BackoffTimer(){
