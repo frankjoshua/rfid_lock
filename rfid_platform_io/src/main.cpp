@@ -2,6 +2,7 @@
 #include "rfid_reader.h"
 #include "backoff.h"
 #include "display.h"
+#include "current.h"
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <WiFiManager.h>
@@ -10,6 +11,7 @@ WiFiManager wifiManager;
 RfidReader rfidReader;
 BackoffTimer backoff;
 Display display;
+CurrentSensor currentSensor;
 
 #define RELAY_PIN D0
 
@@ -91,6 +93,9 @@ void webhook(){
 void unlockLoop(){
   backoff.reset();
   backoff.setDelay();
+  if(currentSensor.getCurrentInAmps() > 1.0){
+    lockAtTime = millis() + TIME_TO_LOCK;
+  }
   int timeLeft = (lockAtTime - millis()) / 1000;
   if(timeLeft > 0){
     relayOn();
