@@ -15,7 +15,7 @@ CurrentSensor currentSensor;
 
 #define RELAY_PIN D0
 
-#define TIME_TO_LOCK 6000
+#define TIME_TO_LOCK 5 * 60 * 1000
 #define MODE_READ 0
 #define MODE_CALL_WEBHOOK 1
 #define MODE_UNLOCKED 2
@@ -90,6 +90,15 @@ void webhook(){
   backoff.setDelay();
 }
 
+String timeToString(unsigned long t){
+ static char str[5];
+ t = t % 3600;
+ int m = t / 60;
+ int s = t % 60;
+ sprintf(str, "%02d:%02d", m, s);
+ return String(str);
+}
+
 void unlockLoop(){
   backoff.reset();
   backoff.setDelay();
@@ -99,7 +108,7 @@ void unlockLoop(){
   int timeLeft = (lockAtTime - millis()) / 1000;
   if(timeLeft > 0){
     relayOn();
-    displayMessage("Locking in " + String(timeLeft) + " " + String(currentSensor.getCurrentInAmps()));
+    displayMessage("Locking in\n" + timeToString(timeLeft) + "\nA: " + String(currentSensor.getCurrentInAmps()));
   }
   else {
     relayOff();

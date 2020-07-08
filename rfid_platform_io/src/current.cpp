@@ -10,5 +10,5 @@ CurrentSensor::CurrentSensor() {
 
 float CurrentSensor::getCurrentInAmps() {
   double Irms = emon1.calcIrms(1480);
-  return Irms * 230.0;
+  return Irms;
 }
