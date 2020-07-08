@@ -99,7 +99,7 @@ void unlockLoop(){
   int timeLeft = (lockAtTime - millis()) / 1000;
   if(timeLeft > 0){
     relayOn();
-    displayMessage("Locking in " + String(timeLeft));
+    displayMessage("Locking in " + String(timeLeft) + " " + String(currentSensor.getCurrentInAmps()));
   }
   else {
     relayOff();
