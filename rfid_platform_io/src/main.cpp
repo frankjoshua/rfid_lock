@@ -3,49 +3,59 @@
 #include "backoff.h"
 #include "display.h"
 #include "current.h"
+#include "status.h"
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
-#include <WiFiManager.h>
+#include <ESPAsyncWiFiManager.h>
+#include <ESPAsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+#include <AsyncElegantOTA.h>
 
-WiFiManager wifiManager;
+AsyncWebServer server(80);
+DNSServer dns;
+AsyncWiFiManager wifiManager(&server,&dns);
 RfidReader rfidReader;
 BackoffTimer backoff;
 Display display;
 CurrentSensor currentSensor;
+Status status;
 
 #define RELAY_PIN D0
 
 #define TIME_TO_LOCK 5 * 60 * 1000
-#define MODE_READ 0
-#define MODE_CALL_WEBHOOK 1
-#define MODE_UNLOCKED 2
 
 unsigned long lockAtTime = 0;
-int mode = MODE_READ;
-
-String cardId = "";
-String assetTag = "01001";
 
 void relayOn(){
-  digitalWrite(RELAY_PIN, LOW);
-}
-
-void relayOff(){
   digitalWrite(RELAY_PIN, HIGH);
 }
 
+void relayOff(){
+  digitalWrite(RELAY_PIN, LOW);
+}
+
 void displayMessage(String msg){
-  display.println(msg);
+  status.msg = msg;
+  display.print(&status);
   Serial.println(msg);
 }
 
 void readCard(){
+  if(millis() % 1000 == 0){
+    displayMessage("");
+  }
   if(rfidReader.isCardAvailable()) {
-    cardId = rfidReader.getCardId();
-    mode = MODE_CALL_WEBHOOK;
+    status.cardId = rfidReader.getCardId();
+    status.mode = MODE_CALL_WEBHOOK;
     backoff.reset();
     backoff.setDelay();
 	}
+}
+
+void unlock() {
+  status.mode = MODE_UNLOCKED;
+  lockAtTime = millis() + TIME_TO_LOCK;
+  backoff.reset();
 }
 
 void webhook(){
@@ -56,7 +66,7 @@ void webhook(){
   }
 
   HTTPClient http;
-  bool httpInitResult = http.begin("http://nodered.archreactor.net/webhook?card_id=" + cardId + "&asset_tag=" + assetTag);
+  bool httpInitResult = http.begin("http://nodered.archreactor.net/webhook?card_id=" + status.cardId + "&asset_tag=" + status.assetTag);
   if(!httpInitResult){
     displayMessage("Could not init http!");
     backoff.setDelay();
@@ -70,14 +80,11 @@ void webhook(){
   case 401: // User not authorized
   case 500: // Server Error Unknown
     displayMessage("Access Denied: " + String(httpCode));
-    mode = MODE_READ;
+    status.mode = MODE_READ;
     backoff.reset();
     break;
   case 200:
-    displayMessage("Unlocked");
-    mode = MODE_UNLOCKED;
-    lockAtTime = millis() + TIME_TO_LOCK;
-    backoff.reset();
+    unlock();
     break;
   default:
     char error[256];
@@ -95,8 +102,13 @@ String timeToString(unsigned long t){
  t = t % 3600;
  int m = t / 60;
  int s = t % 60;
- sprintf(str, "%02d:%02d", m, s);
+ sprintf(str, "%01d:%02d", m, s);
  return String(str);
+}
+
+void lock(){
+  relayOff();
+  status.mode = MODE_READ;
 }
 
 void unlockLoop(){
@@ -108,29 +120,65 @@ void unlockLoop(){
   int timeLeft = (lockAtTime - millis()) / 1000;
   if(timeLeft > 0){
     relayOn();
-    displayMessage("Locking in\n" + timeToString(timeLeft) + "\nA: " + String(currentSensor.getCurrentInAmps()));
+    displayMessage(timeToString(timeLeft) + " " + String(currentSensor.getCurrentInAmps()) + "A");
+  } else {
+    lock();
   }
-  else {
-    relayOff();
-    displayMessage("Tap Card");
-    mode = MODE_READ;
-  }
+}
+
+void updateLoop() {
+  unsigned long time = millis();
+  if(time % 1500 == 0){
+    displayMessage("......");
+  } else if(time % 1000 == 0){
+    displayMessage("....");
+  } else if(time % 500 == 0){
+    displayMessage(".");
+  }  
+  AsyncElegantOTA.loop();
 }
 
 void setup() {
   Serial.begin(115200);
   while(!Serial) {}
+  delay(2000);
+  Serial.println("Initalizing display.");
   display.initDisplay();
   displayMessage("Wifi <<*>>");
   wifiManager.autoConnect("ArchReactorLockout");
-  displayMessage("Tap Card");
+  displayMessage("");
   pinMode(RELAY_PIN, OUTPUT);
   relayOff();
+
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(200, "application/json", status.getStateJson());
+  });
+
+  server.on("/lock", HTTP_GET, [](AsyncWebServerRequest *request) {
+    lock();
+    request->send(200, "text/plain", "Locked.");
+  });
+
+  server.on("/unlock", HTTP_GET, [](AsyncWebServerRequest *request) {
+    status.cardId = "remote";
+    unlock();
+    request->send(200, "text/plain", "Unlocked.");
+  });
+
+  server.on("/upload", HTTP_GET, [](AsyncWebServerRequest *request) {
+    AsyncElegantOTA.begin(&server);    // Start ElegantOTA
+    status.mode = MODE_UPDATE;
+    backoff.reset();
+    request->send(200, "text/html", "<meta http-equiv=\"refresh\" content=\"2; url=/update\" /><H1>Waiting 2 seconds for update server to start...</H1>");
+  });
+  
+  server.begin();
 }
 
 void loop() {
+  
   if(backoff.isReady()){
-    switch(mode){
+    switch(status.mode){
       case MODE_READ:
         readCard();
         break;
@@ -140,6 +188,10 @@ void loop() {
       case MODE_UNLOCKED:
         unlockLoop();
         break;
+      case MODE_UPDATE:
+        updateLoop();
+        break;
     }
   }
+
 }
