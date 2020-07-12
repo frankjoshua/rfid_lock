@@ -15,11 +15,12 @@ class Status {
     int mode = MODE_READ;
     String assetTag = "01001";
     String msg = "";
+    float current = 0;
     String getStateJson();
 };
 
 inline String Status::getStateJson() {
-  return "{\"mode\": \"" + String(mode) +  "\",\"assetTag\": \"" + assetTag + "\"}";
+  return "{\"mode\":\"" + String(mode) +  "\",\"assetTag\":\"" + assetTag + "\",\"current\":" + String(current) + ",\"msg\":\"" + msg + "\",\"cardId\":\"" + cardId + "\"}";
 }
 
 #endif

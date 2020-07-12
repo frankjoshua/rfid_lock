@@ -16,6 +16,7 @@ DNSServer dns;
 AsyncWiFiManager wifiManager(&server,&dns);
 RfidReader rfidReader;
 BackoffTimer backoff;
+BackoffTimer currentSensorBackoff;
 Display display;
 CurrentSensor currentSensor;
 Status status;
@@ -114,13 +115,13 @@ void lock(){
 void unlockLoop(){
   backoff.reset();
   backoff.setDelay();
-  if(currentSensor.getCurrentInAmps() > 1.0){
+  if(status.current > 1.0){
     lockAtTime = millis() + TIME_TO_LOCK;
   }
   int timeLeft = (lockAtTime - millis()) / 1000;
   if(timeLeft > 0){
     relayOn();
-    displayMessage(timeToString(timeLeft) + " " + String(currentSensor.getCurrentInAmps()) + "A");
+    displayMessage(timeToString(timeLeft) + " " + String(status.current) + "A");
   } else {
     lock();
   }
@@ -151,18 +152,19 @@ void setup() {
   relayOff();
 
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+    status.current = currentSensor.getCurrentInAmps();
     request->send(200, "application/json", status.getStateJson());
   });
 
   server.on("/lock", HTTP_GET, [](AsyncWebServerRequest *request) {
     lock();
-    request->send(200, "text/plain", "Locked.");
+    request->send(200, "application/json", status.getStateJson());
   });
 
   server.on("/unlock", HTTP_GET, [](AsyncWebServerRequest *request) {
     status.cardId = "remote";
     unlock();
-    request->send(200, "text/plain", "Unlocked.");
+    request->send(200, "application/json", status.getStateJson());
   });
 
   server.on("/upload", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -186,12 +188,19 @@ void loop() {
         webhook();
         break;
       case MODE_UNLOCKED:
+        if(currentSensorBackoff.isReady()){
+          currentSensorBackoff.reset();
+          currentSensorBackoff.setDelay();
+          currentSensorBackoff.setDelay();
+          status.current = currentSensor.getCurrentInAmps();
+        }
         unlockLoop();
         break;
       case MODE_UPDATE:
         updateLoop();
         break;
     }
+    
   }
 
 }
