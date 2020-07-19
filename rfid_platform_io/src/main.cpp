@@ -4,6 +4,7 @@
 #include "display.h"
 #include "current.h"
 #include "status.h"
+#include "storage.h"
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <ESPAsyncWiFiManager.h>
@@ -20,6 +21,7 @@ BackoffTimer currentSensorBackoff;
 Display display;
 CurrentSensor currentSensor;
 Status status;
+Storage storage;
 
 #define RELAY_PIN D0
 
@@ -143,6 +145,7 @@ void setup() {
   Serial.begin(115200);
   while(!Serial) {}
   delay(2000);
+  storage.restore(&status);
   Serial.println("Initalizing display.");
   display.initDisplay();
   displayMessage("Wifi <<*>>");
@@ -152,6 +155,17 @@ void setup() {
   relayOff();
 
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+    status.current = currentSensor.getCurrentInAmps();
+    request->send(200, "application/json", status.getStateJson());
+  });
+
+  server.on("/config", HTTP_GET, [](AsyncWebServerRequest *request) {
+    if(request->hasArg("assetTag")){
+      status.assetTag = request->arg("assetTag");
+    } else {
+      request->send(400, "application/json", status.getStateJson());
+    }
+    storage.save(&status);
     status.current = currentSensor.getCurrentInAmps();
     request->send(200, "application/json", status.getStateJson());
   });
