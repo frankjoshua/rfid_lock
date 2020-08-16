@@ -9,7 +9,7 @@
 - [ABS Project Box](https://amz.run/3Mu7)
 - [PCB Prototype Board](https://amz.run/3NYz)
 - [3.5mm PCM mount Jacks](https://amz.run/3MuA)
-- 220V to 7-10v 1 amp power supply (Needed)
+- [220V to 7-10v 1 amp power supply (Needed)](https://amz.run/3Ugt)
 - PCB and wires and terminals
 
 ![](esp_in_proto.jpg)
