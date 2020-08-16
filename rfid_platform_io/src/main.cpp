@@ -14,7 +14,7 @@
 
 AsyncWebServer server(80);
 DNSServer dns;
-AsyncWiFiManager wifiManager(&server,&dns);
+AsyncWiFiManager wifiManager(&server, &dns);
 RfidReader rfidReader;
 BackoffTimer backoff;
 BackoffTimer currentSensorBackoff;
@@ -29,40 +29,49 @@ Storage storage;
 
 unsigned long lockAtTime = 0;
 
-void relayOn(){
+void relayOn()
+{
   digitalWrite(RELAY_PIN, HIGH);
 }
 
-void relayOff(){
+void relayOff()
+{
   digitalWrite(RELAY_PIN, LOW);
 }
 
-void displayMessage(String msg){
+void displayMessage(String msg)
+{
   status.msg = msg;
   display.print(&status);
   Serial.println(msg);
 }
 
-void readCard(){
-  if(millis() % 1000 == 0){
+void readCard()
+{
+  if (millis() % 1000 == 0)
+  {
     displayMessage("");
   }
-  if(rfidReader.isCardAvailable()) {
+  if (rfidReader.isCardAvailable())
+  {
     status.cardId = rfidReader.getCardId();
     status.mode = MODE_CALL_WEBHOOK;
     backoff.reset();
     backoff.setDelay();
-	}
+  }
 }
 
-void unlock() {
+void unlock()
+{
   status.mode = MODE_UNLOCKED;
   lockAtTime = millis() + TIME_TO_LOCK;
   backoff.reset();
 }
 
-void webhook(){
-  if(WiFi.status() != WL_CONNECTED){
+void webhook()
+{
+  if (WiFi.status() != WL_CONNECTED)
+  {
     displayMessage("No WIFI!");
     backoff.setDelay();
     return;
@@ -70,7 +79,8 @@ void webhook(){
 
   HTTPClient http;
   bool httpInitResult = http.begin("http://nodered.archreactor.net/webhook?card_id=" + status.cardId + "&asset_tag=" + status.assetTag);
-  if(!httpInitResult){
+  if (!httpInitResult)
+  {
     displayMessage("Could not init http!");
     backoff.setDelay();
     return;
@@ -100,50 +110,66 @@ void webhook(){
   backoff.setDelay();
 }
 
-String timeToString(unsigned long t){
- static char str[5];
- t = t % 3600;
- int m = t / 60;
- int s = t % 60;
- sprintf(str, "%01d:%02d", m, s);
- return String(str);
+String timeToString(unsigned long t)
+{
+  static char str[5];
+  t = t % 3600;
+  int m = t / 60;
+  int s = t % 60;
+  sprintf(str, "%01d:%02d", m, s);
+  return String(str);
 }
 
-void lock(){
+void lock()
+{
   relayOff();
   status.mode = MODE_READ;
 }
 
-void unlockLoop(){
+void unlockLoop()
+{
   backoff.reset();
   backoff.setDelay();
-  if(status.current > 1.0){
+  if (status.current > 0.2)
+  {
     lockAtTime = millis() + TIME_TO_LOCK;
   }
   int timeLeft = (lockAtTime - millis()) / 1000;
-  if(timeLeft > 0){
+  if (timeLeft > 0)
+  {
     relayOn();
     displayMessage(timeToString(timeLeft) + " " + String(status.current) + "A");
-  } else {
+  }
+  else
+  {
     lock();
   }
 }
 
-void updateLoop() {
+void updateLoop()
+{
   unsigned long time = millis();
-  if(time % 1500 == 0){
+  if (time % 1500 == 0)
+  {
     displayMessage("......");
-  } else if(time % 1000 == 0){
+  }
+  else if (time % 1000 == 0)
+  {
     displayMessage("....");
-  } else if(time % 500 == 0){
+  }
+  else if (time % 500 == 0)
+  {
     displayMessage(".");
-  }  
+  }
   AsyncElegantOTA.loop();
 }
 
-void setup() {
+void setup()
+{
   Serial.begin(115200);
-  while(!Serial) {}
+  while (!Serial)
+  {
+  }
   delay(2000);
   storage.restore(&status);
   Serial.println("Initalizing display.");
@@ -160,9 +186,12 @@ void setup() {
   });
 
   server.on("/config", HTTP_GET, [](AsyncWebServerRequest *request) {
-    if(request->hasArg("assetTag")){
+    if (request->hasArg("assetTag"))
+    {
       status.assetTag = request->arg("assetTag");
-    } else {
+    }
+    else
+    {
       request->send(400, "application/json", status.getStateJson());
     }
     storage.save(&status);
@@ -182,39 +211,41 @@ void setup() {
   });
 
   server.on("/upload", HTTP_GET, [](AsyncWebServerRequest *request) {
-    AsyncElegantOTA.begin(&server);    // Start ElegantOTA
+    AsyncElegantOTA.begin(&server); // Start ElegantOTA
     status.mode = MODE_UPDATE;
     backoff.reset();
     request->send(200, "text/html", "<meta http-equiv=\"refresh\" content=\"2; url=/update\" /><H1>Waiting 2 seconds for update server to start...</H1>");
   });
-  
+
   server.begin();
 }
 
-void loop() {
-  
-  if(backoff.isReady()){
-    switch(status.mode){
-      case MODE_READ:
-        readCard();
-        break;
-      case MODE_CALL_WEBHOOK:
-        webhook();
-        break;
-      case MODE_UNLOCKED:
-        if(currentSensorBackoff.isReady()){
-          currentSensorBackoff.reset();
-          currentSensorBackoff.setDelay();
-          currentSensorBackoff.setDelay();
-          status.current = currentSensor.getCurrentInAmps();
-        }
-        unlockLoop();
-        break;
-      case MODE_UPDATE:
-        updateLoop();
-        break;
-    }
-    
-  }
+void loop()
+{
 
+  if (backoff.isReady())
+  {
+    switch (status.mode)
+    {
+    case MODE_READ:
+      readCard();
+      break;
+    case MODE_CALL_WEBHOOK:
+      webhook();
+      break;
+    case MODE_UNLOCKED:
+      if (currentSensorBackoff.isReady())
+      {
+        currentSensorBackoff.reset();
+        currentSensorBackoff.setDelay();
+        currentSensorBackoff.setDelay();
+        status.current = currentSensor.getCurrentInAmps();
+      }
+      unlockLoop();
+      break;
+    case MODE_UPDATE:
+      updateLoop();
+      break;
+    }
+  }
 }

@@ -3,12 +3,13 @@
 
 EnergyMonitor emon1;
 
-
-CurrentSensor::CurrentSensor() {
+CurrentSensor::CurrentSensor()
+{
   emon1.current(A0, 111.1);
 }
 
-float CurrentSensor::getCurrentInAmps() {
+float CurrentSensor::getCurrentInAmps()
+{
   double Irms = emon1.calcIrms(1480);
-  return Irms;
+  return Irms * 0.01;
 }
