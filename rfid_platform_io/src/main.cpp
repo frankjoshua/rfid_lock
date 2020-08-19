@@ -27,6 +27,8 @@ Storage storage;
 
 #define TIME_TO_LOCK 5 * 60 * 1000
 
+const String TOOL_CHECKOUT_URL = "http://192.168.2.66:3000";
+
 unsigned long lockAtTime = 0;
 
 void relayOn()
@@ -78,7 +80,7 @@ void webhook()
   }
 
   HTTPClient http;
-  bool httpInitResult = http.begin("http://nodered.archreactor.net/webhook?card_id=" + status.cardId + "&asset_tag=" + status.assetTag);
+  bool httpInitResult = http.begin(TOOL_CHECKOUT_URL + "/" + status.assetTag + "/checkout/" + status.cardId);
   if (!httpInitResult)
   {
     displayMessage("Could not init http!");
