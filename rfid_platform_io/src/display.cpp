@@ -51,7 +51,7 @@ void Display::print(Status *status)
     topLine = "Be Safe";
     break;
   case MODE_CALL_WEBHOOK:
-    topLine = "Card Lookup";
+    topLine = "Verifying";
     break;
   case MODE_UPDATE:
     topLine = "Updating..";

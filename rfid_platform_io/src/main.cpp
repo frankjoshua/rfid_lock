@@ -80,7 +80,7 @@ void webhook()
   }
 
   HTTPClient http;
-  bool httpInitResult = http.begin(TOOL_CHECKOUT_URL + "/" + status.assetTag + "/checkout/" + status.cardId);
+  bool httpInitResult = http.begin(TOOL_CHECKOUT_URL + "/tool/" + status.assetTag + "/checkout/" + status.cardId);
   if (!httpInitResult)
   {
     displayMessage("Could not init http!");
@@ -89,6 +89,7 @@ void webhook()
   }
 
   int httpCode = http.GET();
+  char error[256];
   switch (httpCode)
   {
   case 404: // User not found
@@ -96,14 +97,18 @@ void webhook()
   case 500: // Server Error Unknown
     displayMessage("Access Denied: " + String(httpCode));
     status.mode = MODE_READ;
-    backoff.reset();
+    backoff.setDelay();
+    backoff.setDelay();
     break;
+  case -1:
+    // Connection Refused - Server Down - Still unlock
+    sprintf(error, "%s\n%d", http.errorToString(httpCode).c_str(), httpCode);
+    displayMessage(error);
   case 200:
     unlock();
     break;
   default:
-    char error[256];
-    sprintf(error, "HTTP GET failed, error: %s\n%d", http.errorToString(httpCode).c_str(), httpCode);
+    sprintf(error, "%s\n%d", http.errorToString(httpCode).c_str(), httpCode);
     displayMessage(error);
     break;
   }
