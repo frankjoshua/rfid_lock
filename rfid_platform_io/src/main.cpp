@@ -25,9 +25,9 @@ Storage storage;
 
 #define RELAY_PIN D0
 
-#define TIME_TO_LOCK 5 * 60 * 1000
+#define TIME_TO_LOCK 10 * 1000
 
-const String TOOL_CHECKOUT_URL = "http://192.168.2.66:3000";
+const String TOOL_CHECKOUT_URL = "http://api.archreactor.net";
 
 unsigned long lockAtTime = 0;
 
@@ -61,6 +61,12 @@ void readCard()
     backoff.reset();
     backoff.setDelay();
   }
+}
+
+void lock()
+{
+  relayOff();
+  status.mode = MODE_READ;
 }
 
 void unlock()
@@ -117,6 +123,53 @@ void webhook()
   backoff.setDelay();
 }
 
+void webhookCheckIn()
+{
+  if (WiFi.status() != WL_CONNECTED)
+  {
+    displayMessage("No WIFI!");
+    backoff.setDelay();
+    return;
+  }
+
+  HTTPClient http;
+  bool httpInitResult = http.begin(TOOL_CHECKOUT_URL + "/tool/" + status.assetTag + "/checkin");
+  if (!httpInitResult)
+  {
+    displayMessage("Could not init http!");
+    backoff.setDelay();
+    return;
+  }
+
+  int httpCode = http.GET();
+  char error[256];
+  switch (httpCode)
+  {
+  case 404: // User not found
+  case 401: // User not authorized
+  case 500: // Server Error Unknown
+    displayMessage("Access Denied: " + String(httpCode));
+    status.mode = MODE_READ;
+    backoff.setDelay();
+    backoff.setDelay();
+    break;
+  case -1:
+    // Connection Refused - Server Down - Still lock
+    sprintf(error, "%s\n%d", http.errorToString(httpCode).c_str(), httpCode);
+    displayMessage(error);
+  case 200:
+    lock();
+    break;
+  default:
+    sprintf(error, "%s\n%d", http.errorToString(httpCode).c_str(), httpCode);
+    displayMessage(error);
+    break;
+  }
+
+  http.end();
+  backoff.setDelay();
+}
+
 String timeToString(unsigned long t)
 {
   static char str[5];
@@ -125,12 +178,6 @@ String timeToString(unsigned long t)
   int s = t % 60;
   sprintf(str, "%01d:%02d", m, s);
   return String(str);
-}
-
-void lock()
-{
-  relayOff();
-  status.mode = MODE_READ;
 }
 
 void unlockLoop()
@@ -149,7 +196,7 @@ void unlockLoop()
   }
   else
   {
-    lock();
+    status.mode = MODE_CALL_WEBHOOK_DISCONNECT;
   }
 }
 
@@ -239,6 +286,9 @@ void loop()
       break;
     case MODE_CALL_WEBHOOK:
       webhook();
+      break;
+    case MODE_CALL_WEBHOOK_DISCONNECT:
+      webhookCheckIn();
       break;
     case MODE_UNLOCKED:
       if (currentSensorBackoff.isReady())
