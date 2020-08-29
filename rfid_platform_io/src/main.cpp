@@ -25,7 +25,7 @@ Storage storage;
 
 #define RELAY_PIN D0
 
-#define TIME_TO_LOCK 10 * 1000
+#define TIME_TO_LOCK 5 * 60 * 1000
 
 const String TOOL_CHECKOUT_URL = "http://api.archreactor.net";
 
