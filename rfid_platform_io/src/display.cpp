@@ -44,6 +44,9 @@ void Display::print(Status *status)
   String topLine;
   switch (status->mode)
   {
+  case MODE_STARTING:
+    topLine = "Starting..";
+    break;
   case MODE_READ:
     topLine = "Tap Card";
     break;
@@ -62,6 +65,11 @@ void Display::print(Status *status)
   }
   IPAddress ip = WiFi.localIP();
   String lastLine = status->assetTag + "\n" + status->cardId + "." + String(ip[3]);
+  if (status->error != "")
+  {
+    lastLine = status->error + " " + String(ip[3]);
+    ;
+  }
   oledDisplay.clearDisplay();
   oledDisplay.setCursor(0, 0);
   oledDisplay.setTextSize(2);

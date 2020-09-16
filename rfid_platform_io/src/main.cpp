@@ -105,17 +105,18 @@ void webhook()
     status.mode = MODE_READ;
     backoff.setDelay();
     backoff.setDelay();
+    status.error = "";
     break;
-  case -1:
-    // Connection Refused - Server Down - Still unlock
-    sprintf(error, "%s\n%d", http.errorToString(httpCode).c_str(), httpCode);
-    displayMessage(error);
   case 200:
+    status.error = "";
     unlock();
     break;
+  case 301: // http redirect still unlock
+  case -1:  // Connection Refused - Server Down - Still unlock
   default:
     sprintf(error, "%s\n%d", http.errorToString(httpCode).c_str(), httpCode);
-    displayMessage(error);
+    status.error = error;
+    unlock();
     break;
   }
 
@@ -148,6 +149,7 @@ void webhookCheckIn()
   case 404: // User not found
   case 401: // User not authorized
   case 500: // Server Error Unknown
+  case 301: // Http redirect
     displayMessage("Access Denied: " + String(httpCode));
     status.mode = MODE_READ;
     backoff.setDelay();
@@ -272,6 +274,9 @@ void setup()
   });
 
   server.begin();
+
+  // Ready to read cards
+  status.mode = MODE_READ;
 }
 
 void loop()
