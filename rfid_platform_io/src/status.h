@@ -20,12 +20,13 @@ public:
   String msg = "";
   String error = "";
   float current = 0;
+  String headline = "";
   String getStateJson();
 };
 
 inline String Status::getStateJson()
 {
-  return "{\"mode\":\"" + String(mode) + "\",\"assetTag\":\"" + assetTag + "\",\"current\":" + String(current) + ",\"msg\":\"" + msg + "\",\"cardId\":\"" + cardId + "\",\"error\":\"" + error + "\"}";
+  return "{\"mode\":\"" + String(mode) + "\",\"assetTag\":\"" + assetTag + "\",\"current\":" + String(current) + ",\"headline\":\"" + headline + "\",\"msg\":\"" + msg + "\",\"cardId\":\"" + cardId + "\",\"error\":\"" + error + "\"}";
 }
 
 #endif

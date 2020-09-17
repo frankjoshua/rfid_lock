@@ -27,7 +27,7 @@ void Display::initDisplay()
   oledDisplay.setTextColor(SSD1306_WHITE);
   oledDisplay.setCursor(0, 0);
   oledDisplay.cp437(true); // Use full 256 char 'Code Page 437' font
-
+  oledDisplay.setTextWrap(false);
   oledDisplay.display();
 }
 
@@ -63,18 +63,19 @@ void Display::print(Status *status)
     topLine = "Error";
     break;
   }
+  status->headline = topLine;
   IPAddress ip = WiFi.localIP();
-  String lastLine = status->assetTag + "\n" + status->cardId + "." + String(ip[3]);
+  String lastLine = "\n" + status->cardId + "." + String(ip[3]) + "\n" + status->assetTag;
   if (status->error != "")
   {
-    lastLine = status->error + " " + String(ip[3]);
-    ;
+    lastLine = "\n" + status->error + "\n" + status->cardId + "." + String(ip[3]) + "\n" + status->assetTag;
   }
   oledDisplay.clearDisplay();
   oledDisplay.setCursor(0, 0);
   oledDisplay.setTextSize(2);
   oledDisplay.println(topLine);
   oledDisplay.println(status->msg);
+  oledDisplay.setTextSize(1);
   oledDisplay.println(lastLine);
   oledDisplay.display();
 }

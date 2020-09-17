@@ -27,7 +27,7 @@ Storage storage;
 
 #define TIME_TO_LOCK 5 * 60 * 1000
 
-const String TOOL_CHECKOUT_URL = "http://api.archreactor.net";
+const String TOOL_CHECKOUT_URL = "https://api.archreactor.net";
 
 unsigned long lockAtTime = 0;
 
@@ -60,6 +60,7 @@ void readCard()
     status.mode = MODE_CALL_WEBHOOK;
     backoff.reset();
     backoff.setDelay();
+    displayMessage("Please wait");
   }
 }
 
@@ -86,7 +87,10 @@ void webhook()
   }
 
   HTTPClient http;
-  bool httpInitResult = http.begin(TOOL_CHECKOUT_URL + "/tool/" + status.assetTag + "/checkout/" + status.cardId);
+  WiFiClientSecure client;
+  client.setInsecure(); //the magic line, use with caution
+  client.connect(TOOL_CHECKOUT_URL, 443);
+  bool httpInitResult = http.begin(client, TOOL_CHECKOUT_URL + "/tool/" + status.assetTag + "/checkout/" + status.cardId);
   if (!httpInitResult)
   {
     displayMessage("Could not init http!");
@@ -101,11 +105,11 @@ void webhook()
   case 404: // User not found
   case 401: // User not authorized
   case 500: // Server Error Unknown
-    displayMessage("Access Denied: " + String(httpCode));
+    displayMessage("Denied: " + String(httpCode));
     status.mode = MODE_READ;
     backoff.setDelay();
     backoff.setDelay();
-    status.error = "";
+    status.error = "Denied: " + String(httpCode);
     break;
   case 200:
     status.error = "";
@@ -133,8 +137,11 @@ void webhookCheckIn()
     return;
   }
 
+  WiFiClientSecure client;
+  client.setInsecure(); //the magic line, use with caution
+  client.connect(TOOL_CHECKOUT_URL, 443);
   HTTPClient http;
-  bool httpInitResult = http.begin(TOOL_CHECKOUT_URL + "/tool/" + status.assetTag + "/checkin");
+  bool httpInitResult = http.begin(client, TOOL_CHECKOUT_URL + "/tool/" + status.assetTag + "/checkin");
   if (!httpInitResult)
   {
     displayMessage("Could not init http!");
@@ -146,25 +153,18 @@ void webhookCheckIn()
   char error[256];
   switch (httpCode)
   {
+  case 200: // OK
+    lock();
+    break;
   case 404: // User not found
   case 401: // User not authorized
   case 500: // Server Error Unknown
   case 301: // Http redirect
-    displayMessage("Access Denied: " + String(httpCode));
-    status.mode = MODE_READ;
-    backoff.setDelay();
-    backoff.setDelay();
-    break;
-  case -1:
-    // Connection Refused - Server Down - Still lock
-    sprintf(error, "%s\n%d", http.errorToString(httpCode).c_str(), httpCode);
-    displayMessage(error);
-  case 200:
-    lock();
-    break;
+  case -1:  // Connection Refused
   default:
     sprintf(error, "%s\n%d", http.errorToString(httpCode).c_str(), httpCode);
-    displayMessage(error);
+    status.error = error;
+    lock();
     break;
   }
 
@@ -249,6 +249,7 @@ void setup()
     else
     {
       request->send(400, "application/json", status.getStateJson());
+      return;
     }
     storage.save(&status);
     status.current = currentSensor.getCurrentInAmps();
