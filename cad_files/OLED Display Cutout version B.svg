@@ -5,10 +5,34 @@
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    version="1.1"
    viewBox="0 0 193 152"
    data-name="Layer 1"
-   id="Layer_1">
+   id="Layer_1"
+   sodipodi:docname="OLED Display Cutout version B.svg"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)">
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1853"
+     inkscape:window-height="1025"
+     id="namedview10"
+     showgrid="false"
+     inkscape:zoom="4.3915053"
+     inkscape:cx="46.19106"
+     inkscape:cy="81.010625"
+     inkscape:window-x="67"
+     inkscape:window-y="255"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="Layer_1" />
   <metadata
      id="metadata18">
     <rdf:RDF>
@@ -17,7 +41,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -25,12 +49,14 @@
      id="defs16" />
   <path
      id="polygon2"
-     d="M 76.194079,32.246294 56.344145,32.417557 56.35,87.34 H 76.2 v 14.62 l 34.01,0 0,-14.62 19.85,0 L 129.88269,31.903832 110.20402,32.07503 110.21,25.05 H 76.2 Z"
+     d="m 76.194142,32.409665 -20.149659,0.0077 0.0211,54.922704 L 76.2,87.34 v 14.62 l 34.01,0 0,-14.62 20.13553,-1.1e-4 -0.0211,-54.951019 -20.12027,0.0077 0.006,-7.3466 H 76.2 Z"
      style="fill:none;stroke:#ff0000;stroke-width:0.28425986;stroke-miterlimit:7;stroke-dasharray:none;stroke-opacity:1"
-     transform="matrix(-1.3296029,-5.1076238e-4,5.1076238e-4,-1.3296029,178.73972,140.50539)" />
+     transform="matrix(-1.3296029,-5.1076238e-4,5.1076238e-4,-1.3296029,178.73972,140.50539)"
+     inkscape:connector-curvature="0"
+     sodipodi:nodetypes="ccccccccccccc" />
   <circle
-     cx="-98.357979"
-     cy="-12.044533"
+     cx="-98.35788"
+     cy="-11.788428"
      r="5.6508126"
      stroke-miterlimit="10"
      id="circle4"
@@ -45,8 +71,8 @@
      style="fill:none;stroke:#0000ff;stroke-width:0.37795275;stroke-miterlimit:7;stroke-dasharray:none;stroke-opacity:1"
      transform="rotate(-179.97799)" />
   <circle
-     cx="-98.131668"
-     cy="-103.44181"
+     cx="-98.13192"
+     cy="-104.09652"
      r="5.6508126"
      stroke-miterlimit="10"
      id="circle8"
