@@ -242,9 +242,21 @@ void setup()
   });
 
   server.on("/config", HTTP_GET, [](AsyncWebServerRequest *request) {
-    if (request->hasArg("assetTag"))
+    if (request->hasArg("assetTag") && request->hasArg("key"))
     {
-      status.assetTag = request->arg("assetTag");
+      if (status.secretKey == "" || status.secretKey == request->arg("key"))
+      {
+        status.assetTag = request->arg("assetTag");
+        if (request->hasArg("newKey"))
+        {
+          status.secretKey = request->arg("newKey");
+        }
+      }
+      else
+      {
+        request->send(401, "application/json", status.getStateJson());
+        return;
+      }
     }
     else
     {
@@ -257,17 +269,35 @@ void setup()
   });
 
   server.on("/lock", HTTP_GET, [](AsyncWebServerRequest *request) {
+    // Check for valid key
+    if (!request->hasArg("key") || status.secretKey != request->arg("key"))
+    {
+      request->send(401, "application/json", status.getStateJson());
+      return;
+    }
     lock();
     request->send(200, "application/json", status.getStateJson());
   });
 
   server.on("/unlock", HTTP_GET, [](AsyncWebServerRequest *request) {
+    // Check for valid key
+    if (!request->hasArg("key") || status.secretKey != request->arg("key"))
+    {
+      request->send(401, "application/json", status.getStateJson());
+      return;
+    }
     status.cardId = "remote";
     unlock();
     request->send(200, "application/json", status.getStateJson());
   });
 
   server.on("/upload", HTTP_GET, [](AsyncWebServerRequest *request) {
+    // Check for valid key
+    if (!request->hasArg("key") || status.secretKey != request->arg("key"))
+    {
+      request->send(401, "application/json", status.getStateJson());
+      return;
+    }
     AsyncElegantOTA.begin(&server); // Start ElegantOTA
     status.mode = MODE_UPDATE;
     backoff.reset();

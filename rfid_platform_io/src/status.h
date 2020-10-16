@@ -21,6 +21,7 @@ public:
   String error = "";
   float current = 0;
   String headline = "";
+  String secretKey = "";
   String getStateJson();
 };
 
