@@ -68,9 +68,12 @@ void readCard()
   if (rfidReader.isCardAvailable())
   {
     status.cardId = rfidReader.getCardId();
-    if (status.cardId == "d")
+    if (status.cardId.length() <= 2)
     {
-      status.mode = MODE_RING_BELL;
+      if (status.cardId == "d")
+      {
+        status.mode = MODE_RING_BELL;
+      }
     }
     else
     {

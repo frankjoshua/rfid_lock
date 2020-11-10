@@ -59,6 +59,9 @@ void Display::print(Status *status)
   case MODE_UPDATE:
     topLine = "Updating..";
     break;
+  case MODE_RING_BELL:
+    topLine = "Ringing.";
+    break;
   default:
     topLine = "Error";
     break;
