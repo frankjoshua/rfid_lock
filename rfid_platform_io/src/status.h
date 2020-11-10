@@ -10,6 +10,7 @@
 #define MODE_UNLOCKED 2
 #define MODE_UPDATE 3
 #define MODE_CALL_WEBHOOK_DISCONNECT 4
+#define MODE_RING_BELL 5
 
 class Status
 {

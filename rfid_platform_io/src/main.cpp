@@ -24,6 +24,7 @@ Status status;
 Storage storage;
 
 #define RELAY_PIN D0
+#define BELL_PIN D3
 
 #define TIME_TO_LOCK 5 * 60 * 1000
 
@@ -39,6 +40,16 @@ void relayOn()
 void relayOff()
 {
   digitalWrite(RELAY_PIN, LOW);
+}
+
+void bellOn()
+{
+  digitalWrite(BELL_PIN, HIGH);
+}
+
+void bellOff()
+{
+  digitalWrite(BELL_PIN, LOW);
 }
 
 void displayMessage(String msg)
@@ -57,7 +68,14 @@ void readCard()
   if (rfidReader.isCardAvailable())
   {
     status.cardId = rfidReader.getCardId();
-    status.mode = MODE_CALL_WEBHOOK;
+    if (status.cardId == "d")
+    {
+      status.mode = MODE_RING_BELL;
+    }
+    else
+    {
+      status.mode = MODE_CALL_WEBHOOK;
+    }
     backoff.reset();
     backoff.setDelay();
     displayMessage("Please wait");
@@ -220,6 +238,18 @@ void updateLoop()
   AsyncElegantOTA.loop();
 }
 
+void ringBellLoop()
+{
+  for (int i = 0; i < 5; i++)
+  {
+    bellOn();
+    delay(150);
+    bellOff();
+    delay(50);
+  }
+  status.mode = MODE_READ;
+}
+
 void setup()
 {
   Serial.begin(115200);
@@ -338,6 +368,9 @@ void loop()
       break;
     case MODE_UPDATE:
       updateLoop();
+      break;
+    case MODE_RING_BELL:
+      ringBellLoop();
       break;
     }
   }
