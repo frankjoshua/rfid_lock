@@ -26,8 +26,6 @@ Storage storage;
 #define RELAY_PIN D0
 #define BELL_PIN D3
 
-#define TIME_TO_LOCK 5 * 60 * 1000
-
 const String TOOL_CHECKOUT_URL = "https://api.archreactor.net";
 
 unsigned long lockAtTime = 0;
@@ -80,7 +78,6 @@ void readCard()
       status.mode = MODE_CALL_WEBHOOK;
     }
     backoff.reset();
-    backoff.setDelay();
     displayMessage("Please wait");
   }
 }
@@ -94,7 +91,7 @@ void lock()
 void unlock()
 {
   status.mode = MODE_UNLOCKED;
-  lockAtTime = millis() + TIME_TO_LOCK;
+  lockAtTime = millis() + status.unlockDuration;
   backoff.reset();
 }
 
@@ -209,7 +206,7 @@ void unlockLoop()
   backoff.setDelay();
   if (status.current > 0.2)
   {
-    lockAtTime = millis() + TIME_TO_LOCK;
+    lockAtTime = millis() + status.unlockDuration;
   }
   int timeLeft = (lockAtTime - millis()) / 1000;
   if (timeLeft > 0)
@@ -255,19 +252,23 @@ void ringBellLoop()
 
 void setup()
 {
+  pinMode(RELAY_PIN, OUTPUT);
+  pinMode(BELL_PIN, OUTPUT);
+  relayOff();
+  bellOff();
+
   Serial.begin(115200);
   while (!Serial)
   {
   }
   delay(2000);
+
   storage.restore(&status);
   Serial.println("Initalizing display.");
   display.initDisplay();
   displayMessage("Wifi <<*>>");
   wifiManager.autoConnect("ArchReactorLockout");
   displayMessage("");
-  pinMode(RELAY_PIN, OUTPUT);
-  relayOff();
 
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
     status.current = currentSensor.getCurrentInAmps();
@@ -275,14 +276,21 @@ void setup()
   });
 
   server.on("/config", HTTP_GET, [](AsyncWebServerRequest *request) {
-    if (request->hasArg("assetTag") && request->hasArg("key"))
+    if (request->hasArg("key"))
     {
       if (status.secretKey == "" || status.secretKey == request->arg("key"))
       {
-        status.assetTag = request->arg("assetTag");
+        if (request->hasArg("assetTag"))
+        {
+          status.assetTag = request->arg("assetTag");
+        }
         if (request->hasArg("newKey"))
         {
           status.secretKey = request->arg("newKey");
+        }
+        if (request->hasArg("unlockDuration"))
+        {
+          status.unlockDuration = request->arg("unlockDuration").toInt();
         }
       }
       else

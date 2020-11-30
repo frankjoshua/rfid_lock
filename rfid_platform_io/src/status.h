@@ -4,6 +4,8 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 
+#define DEFAULT_LOCK_DURATION 5 * 60 * 1000
+
 #define MODE_STARTING -1
 #define MODE_READ 0
 #define MODE_CALL_WEBHOOK 1
@@ -17,6 +19,7 @@ class Status
 public:
   String cardId = "";
   int mode = MODE_STARTING;
+  int unlockDuration = DEFAULT_LOCK_DURATION;
   String assetTag = "01001";
   String msg = "";
   String error = "";
@@ -28,7 +31,7 @@ public:
 
 inline String Status::getStateJson()
 {
-  return "{\"mode\":\"" + String(mode) + "\",\"assetTag\":\"" + assetTag + "\",\"current\":" + String(current) + ",\"headline\":\"" + headline + "\",\"msg\":\"" + msg + "\",\"cardId\":\"" + cardId + "\",\"error\":\"" + error + "\"}";
+  return "{\"mode\":\"" + String(mode) + "\",\"assetTag\":\"" + assetTag + "\",\"unlockDuration\":\"" + String(unlockDuration) + "\",\"current\":" + String(current) + ",\"headline\":\"" + headline + "\",\"msg\":\"" + msg + "\",\"cardId\":\"" + cardId + "\",\"error\":\"" + error + "\"}";
 }
 
 #endif

@@ -12,6 +12,7 @@ RED - +9V (tolerant 7.5V to 10V)<br>
 BLACK - Ground<br>
 White - RELAY<br>
 GREEN - SCT-013 Current Sensor
+D3 (Optional) - Connects to Doorbell
 
 ## Initial Setup of Wifi and Asset tag
 
@@ -27,7 +28,12 @@ The first time you connect it will accept any secret key (string under 48 charac
 http://<IP_ADDRESS>/config?assetTag=<ASSET_TAG_ID>&key=<SECRET_KEY>&newKey=<NEW_SECRET_KEY>
 ```
 
-Note you must also send the asset tag with the new key.
+The time the tool is unlocked can be changed. For example if using with a door lock you can set the unlock time to a very short duration. The duration is in milliseconds.
+
+```
+http://<IP_ADDRESS>/config?unlockDuration=5000&key=<SECRET_KEY>
+```
+
 <br>
 Note the esp8266 must be on the same network as the server for security purposes. The server will reject all non local authentication requests without review.
 

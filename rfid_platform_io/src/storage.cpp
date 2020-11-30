@@ -7,6 +7,7 @@ void Storage::save(Status *status)
 {
   writeString(MEMORY_ADDRESS, status->assetTag);
   writeString(MEMORY_ADDRESS + 255, status->secretKey);
+  writeString(MEMORY_ADDRESS + 255 + 255, String(status->unlockDuration));
 }
 
 void Storage::restore(Status *status)
@@ -20,6 +21,11 @@ void Storage::restore(Status *status)
     if (secretKey.length() < 64)
     {
       status->secretKey = secretKey;
+      String unlockDuration = readString(MEMORY_ADDRESS + 255 + 255);
+      if (unlockDuration.length() < 64)
+      {
+        status->unlockDuration = unlockDuration.toInt();
+      }
     }
   }
 }
