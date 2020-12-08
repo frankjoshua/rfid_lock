@@ -162,6 +162,7 @@ void webhookCheckIn()
   bool httpInitResult = http.begin(client, TOOL_CHECKOUT_URL + "/tool/" + status.assetTag + "/checkin");
   if (!httpInitResult)
   {
+
     displayMessage("Could not init http!");
     backoff.setDelay();
     return;
@@ -250,6 +251,18 @@ void ringBellLoop()
   status.mode = MODE_READ;
 }
 
+/*
+* True is Request has correct Key or if Key is not required
+*/
+bool hasValidKey(AsyncWebServerRequest *request)
+{
+  if (status.secretKey != "")
+  {
+    return request->hasArg("key") && status.secretKey == request->arg("key");
+  }
+  return true;
+}
+
 void setup()
 {
   pinMode(RELAY_PIN, OUTPUT);
@@ -311,8 +324,9 @@ void setup()
 
   server.on("/lock", HTTP_GET, [](AsyncWebServerRequest *request) {
     // Check for valid key
-    if (!request->hasArg("key") || status.secretKey != request->arg("key"))
+    if (!hasValidKey(request))
     {
+      status.error = "401 Bad Key /lock";
       request->send(401, "application/json", status.getStateJson());
       return;
     }
@@ -321,21 +335,23 @@ void setup()
   });
 
   server.on("/unlock", HTTP_GET, [](AsyncWebServerRequest *request) {
+    status.cardId = "remote";
     // Check for valid key
-    if (!request->hasArg("key") || status.secretKey != request->arg("key"))
+    if (!hasValidKey(request))
     {
+      status.error = "401 Bad Key /unlock";
       request->send(401, "application/json", status.getStateJson());
       return;
     }
-    status.cardId = "remote";
     unlock();
     request->send(200, "application/json", status.getStateJson());
   });
 
   server.on("/upload", HTTP_GET, [](AsyncWebServerRequest *request) {
     // Check for valid key
-    if (!request->hasArg("key") || status.secretKey != request->arg("key"))
+    if (!hasValidKey(request))
     {
+      status.error = "401 Bad Key /upload";
       request->send(401, "application/json", status.getStateJson());
       return;
     }
