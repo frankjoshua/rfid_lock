@@ -107,8 +107,8 @@ void webhook()
   HTTPClient http;
   WiFiClientSecure client;
   client.setInsecure(); //the magic line, use with caution
-  client.connect(TOOL_CHECKOUT_URL, 443);
-  bool httpInitResult = http.begin(client, TOOL_CHECKOUT_URL + "/tool/" + status.assetTag + "/checkout/" + status.cardId);
+  String checkoutUrl = TOOL_CHECKOUT_URL + "/tool/" + status.assetTag + "/checkout/" + status.cardId;
+  bool httpInitResult = http.begin(client, checkoutUrl);
   if (!httpInitResult)
   {
     displayMessage("Could not init http!");
@@ -127,7 +127,7 @@ void webhook()
     status.mode = MODE_READ;
     backoff.setDelay();
     backoff.setDelay();
-    status.error = "Denied: " + String(httpCode);
+    status.error = "Denied: " + String(httpCode) + " " + checkoutUrl;
     break;
   case 200:
     status.error = "";
@@ -157,12 +157,10 @@ void webhookCheckIn()
 
   WiFiClientSecure client;
   client.setInsecure(); //the magic line, use with caution
-  client.connect(TOOL_CHECKOUT_URL, 443);
   HTTPClient http;
   bool httpInitResult = http.begin(client, TOOL_CHECKOUT_URL + "/tool/" + status.assetTag + "/checkin");
   if (!httpInitResult)
   {
-
     displayMessage("Could not init http!");
     backoff.setDelay();
     return;
@@ -343,7 +341,15 @@ void setup()
       request->send(401, "application/json", status.getStateJson());
       return;
     }
-    unlock();
+    if (request->hasArg("cardId"))
+    {
+      status.cardId = request->arg("cardId");
+      status.mode = MODE_CALL_WEBHOOK;
+    }
+    else
+    {
+      unlock();
+    }
     request->send(200, "application/json", status.getStateJson());
   });
 
@@ -365,6 +371,19 @@ void setup()
 
   // Ready to read cards
   status.mode = MODE_READ;
+  Serial.println(WiFi.dnsIP());
+  IPAddress result;
+  int err = WiFi.hostByName("api.archreactor.net", result);
+  if (err == 1)
+  {
+    Serial.print("Ip address: ");
+    Serial.println(result);
+  }
+  else
+  {
+    Serial.print("Error code: ");
+    Serial.println(err);
+  }
 }
 
 void loop()

@@ -2,12 +2,14 @@
 #include <EEPROM.h>
 
 #define MEMORY_ADDRESS 0
+#define EEPROM_SIZE 1024
+#define MAX_SIZE 255
 
 void Storage::save(Status *status)
 {
   writeString(MEMORY_ADDRESS, status->assetTag);
-  writeString(MEMORY_ADDRESS + 255, status->secretKey);
-  writeString(MEMORY_ADDRESS + 255 + 255, String(status->unlockDuration));
+  writeString(MEMORY_ADDRESS + MAX_SIZE, status->secretKey);
+  writeString(MEMORY_ADDRESS + MAX_SIZE * 2, String(status->unlockDuration));
 }
 
 void Storage::restore(Status *status)
@@ -17,11 +19,11 @@ void Storage::restore(Status *status)
   if (assetTag.length() < 64)
   {
     status->assetTag = assetTag;
-    String secretKey = readString(MEMORY_ADDRESS + 255);
+    String secretKey = readString(MEMORY_ADDRESS + MAX_SIZE);
     if (secretKey.length() < 64)
     {
       status->secretKey = secretKey;
-      String unlockDuration = readString(MEMORY_ADDRESS + 255 + 255);
+      String unlockDuration = readString(MEMORY_ADDRESS + MAX_SIZE * 2);
       if (unlockDuration.length() < 64)
       {
         status->unlockDuration = unlockDuration.toInt();
@@ -30,9 +32,9 @@ void Storage::restore(Status *status)
   }
 }
 
-void Storage::writeString(char address, String data)
+void Storage::writeString(int address, String data)
 {
-  EEPROM.begin(512);
+  EEPROM.begin(EEPROM_SIZE);
   int _size = data.length();
   int i;
   for (i = 0; i < _size; i++)
@@ -44,9 +46,9 @@ void Storage::writeString(char address, String data)
   EEPROM.end();
 }
 
-String Storage::readString(char address)
+String Storage::readString(int address)
 {
-  EEPROM.begin(512);
+  EEPROM.begin(EEPROM_SIZE);
   int maxSize = 100;
   char data[maxSize]; //Max 100 Bytes
   int len = 0;
