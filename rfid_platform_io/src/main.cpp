@@ -23,7 +23,7 @@ CurrentSensor currentSensor;
 Status status;
 Storage storage;
 
-#define RELAY_PIN D0
+#define RELAY_PIN D7
 #define BELL_PIN D3
 
 const String TOOL_CHECKOUT_URL = "https://api.archreactor.net";
