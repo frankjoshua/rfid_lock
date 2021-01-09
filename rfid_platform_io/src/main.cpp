@@ -57,6 +57,14 @@ void displayMessage(String msg)
   Serial.println(msg);
 }
 
+void displayError(String msg)
+{
+  status.msg = "Error";
+  status.error = msg;
+  display.print(&status);
+  Serial.println(msg);
+}
+
 void readCard()
 {
   if (millis() % 1000 == 0)
@@ -99,8 +107,8 @@ void webhook()
 {
   if (WiFi.status() != WL_CONNECTED)
   {
-    displayMessage("No WIFI!");
-    backoff.setDelay();
+    displayError("No WIFI!");
+    backoff.setDelay(millis());
     return;
   }
 
@@ -111,8 +119,8 @@ void webhook()
   bool httpInitResult = http.begin(client, checkoutUrl);
   if (!httpInitResult)
   {
-    displayMessage("Could not init http!");
-    backoff.setDelay();
+    displayError("Could not init http!");
+    backoff.setDelay(millis());
     return;
   }
 
@@ -125,8 +133,8 @@ void webhook()
   case 500: // Server Error Unknown
     displayMessage("Denied: " + String(httpCode));
     status.mode = MODE_READ;
-    backoff.setDelay();
-    backoff.setDelay();
+    backoff.setDelay(millis());
+    backoff.setDelay(millis());
     status.error = "Denied: " + String(httpCode) + " " + checkoutUrl;
     break;
   case 200:
@@ -143,15 +151,15 @@ void webhook()
   }
 
   http.end();
-  backoff.setDelay();
+  backoff.setDelay(millis());
 }
 
 void webhookCheckIn()
 {
   if (WiFi.status() != WL_CONNECTED)
   {
-    displayMessage("No WIFI!");
-    backoff.setDelay();
+    displayError("No WIFI!");
+    backoff.setDelay(millis());
     return;
   }
 
@@ -161,8 +169,8 @@ void webhookCheckIn()
   bool httpInitResult = http.begin(client, TOOL_CHECKOUT_URL + "/tool/" + status.assetTag + "/checkin");
   if (!httpInitResult)
   {
-    displayMessage("Could not init http!");
-    backoff.setDelay();
+    displayError("Could not init http!");
+    backoff.setDelay(millis());
     return;
   }
 
@@ -186,7 +194,7 @@ void webhookCheckIn()
   }
 
   http.end();
-  backoff.setDelay();
+  backoff.setDelay(millis());
 }
 
 String timeToString(unsigned long t)
@@ -202,7 +210,7 @@ String timeToString(unsigned long t)
 void unlockLoop()
 {
   backoff.reset();
-  backoff.setDelay();
+  backoff.setDelay(millis());
   if (status.current > 0.2)
   {
     lockAtTime = millis() + status.unlockDuration;
@@ -263,6 +271,10 @@ bool hasValidKey(AsyncWebServerRequest *request)
 
 void setup()
 {
+  Serial.println("Initalizing display.");
+  display.initDisplay();
+  displayMessage("Starting ...");
+
   pinMode(RELAY_PIN, OUTPUT);
   pinMode(BELL_PIN, OUTPUT);
   relayOff();
@@ -275,9 +287,7 @@ void setup()
   delay(2000);
 
   storage.restore(&status);
-  Serial.println("Initalizing display.");
-  display.initDisplay();
-  displayMessage("Wifi <<*>>");
+  displayMessage("<<Wifi>> ...");
   wifiManager.autoConnect("ArchReactorLockout");
   displayMessage("");
 
@@ -384,12 +394,13 @@ void setup()
     Serial.print("Error code: ");
     Serial.println(err);
   }
+  display.print(&status);
 }
 
 void loop()
 {
 
-  if (backoff.isReady())
+  if (backoff.isReady(millis()))
   {
     switch (status.mode)
     {
@@ -403,11 +414,11 @@ void loop()
       webhookCheckIn();
       break;
     case MODE_UNLOCKED:
-      if (currentSensorBackoff.isReady())
+      if (currentSensorBackoff.isReady(millis()))
       {
         currentSensorBackoff.reset();
-        currentSensorBackoff.setDelay();
-        currentSensorBackoff.setDelay();
+        currentSensorBackoff.setDelay(millis());
+        currentSensorBackoff.setDelay(millis());
         status.current = currentSensor.getCurrentInAmps();
       }
       unlockLoop();
