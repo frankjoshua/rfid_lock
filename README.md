@@ -1,3 +1,5 @@
+[![PlatformIO CI](https://github.com/frankjoshua/rfid_lock/workflows/PlatformIO%20CI/badge.svg)](https://github.com/frankjoshua/rfid_lock/actions)
+
 ## Usage of Lock
 
 Just tap your rfid card to the reader. The reader will call a web service that will verify the membership status. If OK the pin D0 will go from LOW to HIGH. This will trigger a relay and allow power to the tool. A 5 minute timer will then start. If the lock detects current flowing above a set threshold the timer will reset. This prevents the lock from turning power off while the tool is in use. After the timer completes the count down (5 minutes of not using the tool). The pin D0 will go back to LOW releasing the relay and cutting power to the tool.
@@ -53,6 +55,24 @@ http://<IP_ADDRESS>/upload&key=<SECRET_KEY>
 ```
 
 When you visit this URL it will start the OTA server and redirect you to /update. You can the browse for the bin file that should be in <WORKSPACE>/rfid_lock/rfid_platform_io/.pio/build/nodemcuv2/frimware.bin
+
+## Testing
+
+Testing is done automatically using Github Actions. It only tests that don't require a Nodemcu physically connected though.<br>
+<br>
+Manually run tests with.
+
+```
+cd rfid_platform_io
+pio test -e test
+```
+
+This command will run tests on the Nodemcu if one is connected.
+
+```
+cd rfid_platform_io
+pio test -e nodemcuv2
+```
 
 ## Parts list
 
