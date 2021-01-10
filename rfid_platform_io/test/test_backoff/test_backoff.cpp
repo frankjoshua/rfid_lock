@@ -1,4 +1,4 @@
-#include <Arduino.h>
+
 #include <unity.h>
 #include "backoff.h"
 
@@ -48,21 +48,21 @@ void testLongUptime(void)
 void testDelayLongUptime(void)
 {
   unsigned long delayUntil = 0;
-  unsigned long uptimeInMillis = 4294967295;
+  unsigned long uptimeInMillis = ULONG_MAX;
   int lastDelay = 500;
   delayUntil = uptimeInMillis + lastDelay;
   TEST_ASSERT_EQUAL(499, delayUntil);
   TEST_ASSERT_EQUAL(true, 501 > delayUntil);
 
   backoff.setDelay(uptimeInMillis);
-  TEST_ASSERT_EQUAL(true, backoff.isReady(501));
+  TEST_ASSERT_EQUAL(true, backoff.isReady(1501));
 }
 
 void setup()
 {
   // NOTE!!! Wait for >2 secs
   // if board doesn't support software reset via Serial.DTR/RTS
-  delay(2000);
+  //delay(2000);
 
   UNITY_BEGIN(); // IMPORTANT LINE!
 
@@ -78,4 +78,10 @@ void setup()
 
 void loop()
 {
+}
+
+int main()
+{
+  setup();
+  return 0;
 }
