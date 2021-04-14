@@ -44,14 +44,14 @@ Note the esp8266 must be on the same network as the server for security purposes
 An administrator may remotely lock or unlock the tools.
 
 ```
-http://<IP_ADDRESS>/lock&key=<SECRET_KEY>
-http://<IP_ADDRESS>/unlock&key=<SECRET_KEY>
+http://<IP_ADDRESS>/lock?key=<SECRET_KEY>
+http://<IP_ADDRESS>/unlock?key=<SECRET_KEY>
 ```
 
 ## OTA Updates
 
 ```
-http://<IP_ADDRESS>/upload&key=<SECRET_KEY>
+http://<IP_ADDRESS>/upload?key=<SECRET_KEY>
 ```
 
 When you visit this URL it will start the OTA server and redirect you to /update. You can the browse for the bin file that should be in <WORKSPACE>/rfid_lock/rfid_platform_io/.pio/build/nodemcuv2/frimware.bin
